@@ -21,7 +21,9 @@ Goal: *modern-CPU front-end ভিত*।
 - [x] [2b] Multi-cycle DIV/REM unit (`rtl/div64.v`, 64-iteration restoring
       divider) + EX busy/stall handshake — the pipeline freezes around long
       divisions instead of blocking for a full clock period
-- [ ] [2c] Cycle-counting testbench (CPI measurement: loops w/ predictor on/off)
+- [x] [2c] Cycle accounting: live CPI in tb_core (iverilog: cycles/retired/CPI)
+      + golden-model estimator (`golden.py --cycles`, full BTB/penalty replay,
+      hand-verified against t02..t06)
 - [ ] [2d] FPGA bring-up kit: PLL, reset synchronizer, UART (TX/RX), top module
       for Arty A7 / iCE40 — *first physical run: "Hello World" over UART*
 
