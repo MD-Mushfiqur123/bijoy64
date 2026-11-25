@@ -1,4 +1,4 @@
-# BIJOY-64 on Digilent Arty A7-100T
+# MX-Hpi-1 on Digilent Arty A7-100T
 # 100 MHz system clock, active-low reset button, UART on Pmod JA.
 # uart_tx_pin = JA pin 1, uart_rx_pin = JA pin 2 (use a crossover cable if
 # talking to a PC USB-UART adapter).

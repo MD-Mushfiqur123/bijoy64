@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// regfile16x64.v -- BIJOY-64 register file: 16 x 64-bit, r0 hardwired to zero.
+// regfile16x64.v -- MX-Hpi-1 register file: 16 x 64-bit, r0 hardwired to zero.
 // Combinational read, synchronous write.
 // ---------------------------------------------------------------------------
 `timescale 1ns/1ps

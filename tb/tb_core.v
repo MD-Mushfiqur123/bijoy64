@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// tb_core.v -- BIJOY-64 simulation testbench (for Icarus Verilog)
+// tb_core.v -- MX-Hpi-1 simulation testbench (for Icarus Verilog)
 //
 // Loads imem.hex / dmem.hex, runs until the core reports `halted`, then
 // counts retired instructions and cycles (+CPI) and prints the architectural
@@ -15,7 +15,7 @@ module tb_core;
     reg rst_n = 1'b0;
     wire halted;
 
-    bijoy64_top dut (
+    mx_hpi_1_top dut (
         .clk    (clk),
         .rst_n  (rst_n),
         .halted (halted)
@@ -54,7 +54,7 @@ module tb_core;
         for (j = 0; j < 2; j = j + 1)
             @(posedge clk);
 
-        $display("=== BIJOY-64 halted ===");
+        $display("=== MX-Hpi-1 halted ===");
         if (retired > 64'd0)
             $display("cycles=%0d retired=%0d CPI=%0.3f",
                      cycles, retired, $itor(cycles) / $itor(retired));

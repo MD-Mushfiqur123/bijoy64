@@ -1,4 +1,4 @@
-# FPGA bring-up: transmit "Hello, BIJOY-64\n" over the memory-mapped UART.
+# FPGA bring-up: transmit "Hello, MX-Hpi-1\n" over the memory-mapped UART.
 # In the golden model the MMIO store lands in RAM at 0x800, so the same file
 # doubles as a functional test of the byte-unpack loop.
 
@@ -29,8 +29,8 @@ wdone:
     HLT
 
     .data
-    .word 0x42202c6f6c6c6548   # "Hello, B"
-    .word 0x0a34362d594f4a49   # "IJOY-64\n"
+    .word 0x4d202c6f6c6c6548   # "Hello, M"
+    .word 0x0a312d6970482d58   # "X-Hpi-1\n"
 
 # EXPECT r9 = 2
 # EXPECT r10 = 16

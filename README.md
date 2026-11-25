@@ -1,6 +1,6 @@
-# BIJOY-64 — a custom 64-bit CPU, from scratch
+# MX-Hpi-1 — a custom 64-bit CPU, from scratch
 
-BIJOY-64 (বিজয় = victory) is a **from-scratch 64-bit RISC CPU** with its own
+MX-Hpi-1 is a **from-scratch 64-bit RISC CPU** with its own
 custom ISA (not RISC-V, not MIPS, not anyone else's), written in **Verilog**.
 
 ```
@@ -15,7 +15,7 @@ custom ISA (not RISC-V, not MIPS, not anyone else's), written in **Verilog**.
 
 ## Architecture at a glance
 
-| Property          | BIJOY-64                                        |
+| Property          | MX-Hpi-1                                        |
 |-------------------|-------------------------------------------------|
 | Datapath          | 64-bit                                          |
 | Instruction width | 32-bit fixed                                    |
@@ -37,10 +37,10 @@ rtl/alu64.v           64-bit ALU (13 ops incl. signed MUL/DIV/REM, /0 defined)
 rtl/regfile16x64.v    16 x 64-bit register file, r0 = 0, combinational read
 rtl/decoder.v         full instruction decode -> control signals
 rtl/bpu.v             dynamic branch predictor: 64-entry BTB + 2-bit counters
-rtl/bijoy64_core.v    the pipelined core: stages, forwarding, hazard, flush
+rtl/mx_hpi_1_core.v    the pipelined core: stages, forwarding, hazard, flush
 rtl/imem.v            16 KB instruction memory ($readmemh)
 rtl/dmem.v            4 KB data memory (byte-addressed, word-aligned, 64-bit)
-rtl/bijoy64_top.v     top-level wiring
+rtl/mx_hpi_1_top.v     top-level wiring
 tb/tb_core.v          Icarus-Verilog testbench: run to halt, dump arch state
 tb/tb_uart.v          UART TX->RX loopback check for the FPGA bring-up kit
 fpga/                 FPGA kit: MMIO top, UART, reset sync, board constraints

@@ -1,4 +1,4 @@
-# BIJOY-64 test 5: pipeline hazards -- forwarding, load-use, back-to-back deps
+# MX-Hpi-1 test 5: pipeline hazards -- forwarding, load-use, back-to-back deps
 
     LODI    r1, 100
     ADD     r2, r1, r1       # r2 = 200   (EX->EX forward)

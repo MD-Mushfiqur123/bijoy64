@@ -1,4 +1,4 @@
-# BIJOY-64 test 4: function calls (JAL / JALR), link register
+# MX-Hpi-1 test 4: function calls (JAL / JALR), link register
 
     # r1 = 33, r2 = -9 ; call double_add: r3 = 2*r1 + r2 = 57
     LODI    r1, 33

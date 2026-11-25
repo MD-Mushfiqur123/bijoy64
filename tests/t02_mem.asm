@@ -1,4 +1,4 @@
-# BIJOY-64 test 2: loads, stores, memory addressing
+# MX-Hpi-1 test 2: loads, stores, memory addressing
 
     .data
     .word   0xDEADBEEFCAFEBABE

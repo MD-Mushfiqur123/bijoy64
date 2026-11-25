@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BIJOY-64 assembler: .asm -> imem.hex / dmem.hex
+"""MX-Hpi-1 assembler: .asm -> imem.hex / dmem.hex
 
 See docs/ISA.md for the instruction set definition.
 """
@@ -259,7 +259,7 @@ class Assembler:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="BIJOY-64 assembler")
+    ap = argparse.ArgumentParser(description="MX-Hpi-1 assembler")
     ap.add_argument("input")
     ap.add_argument("--imem", default="imem.hex")
     ap.add_argument("--dmem", default="dmem.hex")

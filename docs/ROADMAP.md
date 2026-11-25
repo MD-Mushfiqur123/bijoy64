@@ -1,4 +1,4 @@
-# BIJOY-64 — The Long Road (Master Plan)
+# MX-Hpi-1 — The Long Road (Master Plan)
 
 > একটা স্বপ্ন: scratch থেকে custom 64-bit CPU — শেষ পর্যন্ত OS-যোগ্য, compiler-চালিত,
 > modern (out-of-order) hardware। এই document-টা পুরো সিঁড়ির ম্যাপ।
@@ -38,7 +38,7 @@ the architectural contract).
 Goal: *compile, not assemble*।
 - Path A (recommended): **compat sub-mode** — RV64IMA encoding support behind
   a mode bit; unlocks the whole GCC/LLVM/binutils/Linux ecosystem for free.
-- Path B (purist): BIJOY-64 LLVM backend (TableGen, RegisterInfo, CallingConv)
+- Path B (purist): MX-Hpi-1 LLVM backend (TableGen, RegisterInfo, CallingConv)
   — the "proper" long route, ~3-6+ months.
 - Either way: define the ABI (calling convention, stack layout) formally in
   `docs/ABI.md`; assembler gets relocation/linking support.

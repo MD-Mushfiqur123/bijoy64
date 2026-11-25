@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// bijoy64_fpga_top.v -- BIJOY-64 FPGA bring-up top level
+// mx_hpi_1_fpga_top.v -- MX-Hpi-1 FPGA bring-up top level
 //
 // Core + FPGA memory variants + memory-mapped I/O. Single clock domain (the
 // board oscillator); no PLL needed for first bring-up, UART baud comes from
@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------------
 `timescale 1ns/1ps
 
-module bijoy64_fpga_top #(
+module mx_hpi_1_fpga_top #(
     parameter BAUD_DIV = 868          // 100 MHz / 115200
 ) (
     input  wire       clk,
@@ -36,7 +36,7 @@ module bijoy64_fpga_top #(
     wire [63:0] dmem_wdata;
     wire        halted;
 
-    bijoy64_core u_core (
+    mx_hpi_1_core u_core (
         .clk        (clk),
         .rst_n      (rst_n),
         .imem_addr  (imem_addr),
