@@ -39,6 +39,7 @@ module bpu (
 
     // update
     wire [5:0] uidx = update_pc[7:2];
+    wire       allocate = !valid[uidx];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -47,9 +48,11 @@ module bpu (
             valid[uidx] <= 1'b1;
             btb_target[uidx] <= update_target;
             if (update_taken)
-                pht[uidx] <= (pht[uidx] == 2'b11) ? 2'b11 : pht[uidx] + 2'd1;
+                pht[uidx] <= allocate              ? 2'b10 :
+                              (pht[uidx] == 2'b11) ? 2'b11 : pht[uidx] + 2'd1;
             else
-                pht[uidx] <= (pht[uidx] == 2'b00) ? 2'b00 : pht[uidx] - 2'd1;
+                pht[uidx] <= allocate              ? 2'b00 :
+                              (pht[uidx] == 2'b00) ? 2'b00 : pht[uidx] - 2'd1;
         end
     end
 

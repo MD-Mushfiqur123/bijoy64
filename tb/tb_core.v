@@ -2,7 +2,8 @@
 // tb_core.v -- BIJOY-64 simulation testbench (for Icarus Verilog)
 //
 // Loads imem.hex / dmem.hex, runs until the core reports `halted`, then
-// prints the architectural register file and non-zero data memory.
+// counts retired instructions and cycles (+CPI) and prints the architectural
+// register file and non-zero data memory.
 //
 //   iverilog -o sim rtl/*.v tb/tb_core.v && ./sim
 // ---------------------------------------------------------------------------
@@ -25,7 +26,22 @@ module tb_core;
     integer i;
     integer j;
 
+    reg [63:0] cycles;
+    reg [63:0] retired;
+
+    wire run_phase   = rst_n && !halted;
+    wire retire_fire = dut.u_core.mem_wb_valid;   // one cycle per retired insn
+
+    always @(posedge clk) begin
+        if (run_phase)
+            cycles <= cycles + 64'd1;
+        if (run_phase && retire_fire)
+            retired <= retired + 64'd1;
+    end
+
     initial begin
+        cycles  = 64'd0;
+        retired = 64'd0;
         // uncomment for waveform debugging:
         // $dumpfile("tb_core.vcd");
         // $dumpvars(0, tb_core);
@@ -35,10 +51,17 @@ module tb_core;
         rst_n = 1'b1;
 
         @(posedge halted);
-        for (j = 0; j < 4; j = j + 1)
+        for (j = 0; j < 2; j = j + 1)
             @(posedge clk);
 
-        $display("=== BIJOY-64 halted: architectural register file ===");
+        $display("=== BIJOY-64 halted ===");
+        if (retired > 64'd0)
+            $display("cycles=%0d retired=%0d CPI=%0.3f",
+                     cycles, retired, $itor(cycles) / $itor(retired));
+        else
+            $display("cycles=%0d retired=0", cycles);
+
+        $display("=== architectural register file ===");
         for (i = 1; i < 16; i = i + 1)
             $display("r%0d = 0x%016h", i, dut.u_core.u_rf.regs[i]);
 
@@ -53,7 +76,7 @@ module tb_core;
 
     // safety timeout
     initial begin
-        #200000;
+        #200000000;
         $display("TIMEOUT: core never halted");
         $finish;
     end

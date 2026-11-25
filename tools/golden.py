@@ -91,6 +91,9 @@ class Golden:
         r1 = self.regs[rs1] if rs1 else 0
         r2 = self.regs[rs2] if rs2 else 0
         npc = (self.pc + 4) & MASK64
+        cf_taken = False                    # microarch meta (Phase 1/2c)
+        cf_target = npc
+        is_cf = False
 
         if op == 0x00:                      # HLT
             return False
@@ -132,22 +135,92 @@ class Golden:
             }[op]
             if cond:
                 npc = (self.pc + sx64(i12, 12) * 4) & MASK64
+            is_cf = True
+            cf_taken = cond
+            cf_target = (self.pc + sx64(i12, 12) * 4) & MASK64
         elif op == 0x3D:                    # JALR
             self.wr(rd, npc)
             npc = (r1 + sx64(imm18, 18)) & MASK64
+            is_cf = True
+            cf_taken = True
+            cf_target = npc
         elif op == 0x3E:                    # JAL
             self.wr(rd, npc)
             npc = (self.pc + (sx(off22, 22) << 2)) & MASK64
+            is_cf = True
+            cf_taken = True
+            cf_target = npc
         else:
             raise ValueError(f"illegal opcode {op:#x} at {self.pc:#x}")
 
+        meta = {
+            "op": op, "rd": rd,
+            "is_cf": is_cf, "cf_taken": cf_taken, "cf_target": cf_target,
+        }
         self.trace.append(self.pc)
         self.pc = npc & MASK64
-        return True
+        self.meta = meta
+        return meta
 
     def wr(self, rd, val):
         if rd != 0:
             self.regs[rd] = val & MASK64
+
+    # ------------------------------------------------------------------
+    # microarchitectural cycle estimator (Phase 1/2c). Replays the program
+    # on a fresh clone (full architectural semantics) and models the RTL:
+    #   * 5-stage pipeline, IPC 1  (+4 fill)
+    #   * dynamic predictor: 64-entry direct-mapped BTB @ pc[7:2], 2-bit
+    #     saturating counters, weakly-taken allocation; mispredict costs +2
+    #   * load-use hazard: +1
+    #   * DIV/REM multi-cycle freeze: +63
+    # It is an estimate: exact RTL cycle counts come from tb_core (iverilog).
+    # ------------------------------------------------------------------
+    def estimate_cycles(self):
+        dmem_words = ([self.dmem[i] for i in range(max(self.dmem) + 1)]
+                      if self.dmem else [])
+        g = Golden(list(self.imem), dmem_words)
+        btb = {}                     # pc -> [counter(0..3), cf_target]
+        cycles = 4                   # pipeline fill
+        retired = 0
+
+        def uses_rd(ins, rd):
+            op = (ins >> 26) & 0x3F
+            r1 = (ins >> 18) & 0xF
+            r2 = (ins >> 14) & 0xF
+            if 0x01 <= op <= 0x0D or op == 0x20:
+                return rd == r1 or rd == r2
+            if 0x10 <= op <= 0x18 or op == 0x1A or op == 0x3D:
+                return rd == r1
+            return False
+
+        for _ in range(2_000_000):
+            pcs = len(g.trace)
+            meta = g.step()
+            if not meta:
+                return cycles, retired
+            retired += 1
+            cycles += 1
+            pc = g.trace[-1]
+            op = meta["op"]
+
+            if meta["is_cf"]:
+                taken, target = meta["cf_taken"], meta["cf_target"]
+                pred = btb.get(pc)
+                pred_taken = pred is not None and bool(pred[0] & 2)
+                if pred_taken != taken or (taken and pred[1] != target):
+                    cycles += 2                       # mispredict repair
+                entry = btb.setdefault(pc, [1, target])
+                entry[1] = target
+                entry[0] = min(3, entry[0] + 1) if taken else max(0, entry[0] - 1)
+            else:
+                if op == 0x1A and meta["rd"] != 0:
+                    nidx = (pc + 4) >> 2
+                    if nidx < len(g.imem) and uses_rd(g.imem[nidx], meta["rd"]):
+                        cycles += 1                   # load-use bubble
+                if op in (0x0C, 0x0D):
+                    cycles += 63                      # DIV/REM freeze
+        raise RuntimeError("estimate: max steps exceeded")
 
     def run(self, max_steps=1_000_000):
         for _ in range(max_steps):
@@ -164,12 +237,20 @@ def main():
     ap.add_argument("input")
     ap.add_argument("--regs", action="store_true", help="print r1..r15 at halt")
     ap.add_argument("--mem", action="store_true", help="print nonzero data memory")
+    ap.add_argument("--cycles", action="store_true",
+                    help="print microarchitectural cycle/CPI estimate (RTL: see tb_core)")
     a = ap.parse_args()
 
     asm = Assembler()
     words, data = asm.run(open(a.input).read())
     g = Golden(words, data)
+    est = g.estimate_cycles() if a.cycles else None
     g.run()
+    if a.cycles:
+        est_cycles, est_retired = est
+        cpi = est_cycles / est_retired if est_retired else 0
+        print(f"[cycle estimate: {est_cycles} cycles, {est_retired} retired, "
+              f"CPI = {cpi:.3f}]")
     if a.regs:
         for i in range(1, 16):
             print(f"r{i:02d} = 0x{g.regs[i]:016x}")
