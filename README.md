@@ -24,7 +24,7 @@ custom ISA (not RISC-V, not MIPS, not anyone else's), written in **Verilog**.
 | Pipeline          | 5 stages: IF → ID → EX → MEM → WB               |
 | Forwarding        | EX/MEM→EX, MEM/WB→EX (full)                     |
 | Hazards           | load-use: 1-cycle bubble                        |
-| Control flow      | resolved in EX, flush on taken (predict-not-taken) |
+| Control flow      | resolved in EX; dynamic prediction (64-entry BTB + 2-bit counters), mispredict repair |
 | Instructions      | ADD SUB AND OR XOR SLL SRL SRA SLT SLTU MUL DIV REM, ADDI ANDI ORI XORI SLLI SRLI SRAI SLTI SLTIU LODI, LD, ST, BEQ BNE BLT BGE BLTU BGEU, JAL JALR, HLT |
 
 Full spec: **[docs/ISA.md](docs/ISA.md)** (hand-designed encodings, layouts and
@@ -36,6 +36,7 @@ semantics — see also the pipeline contract there).
 rtl/alu64.v           64-bit ALU (13 ops incl. signed MUL/DIV/REM, /0 defined)
 rtl/regfile16x64.v    16 x 64-bit register file, r0 = 0, combinational read
 rtl/decoder.v         full instruction decode -> control signals
+rtl/bpu.v             dynamic branch predictor: 64-entry BTB + 2-bit counters
 rtl/bijoy64_core.v    the pipelined core: stages, forwarding, hazard, flush
 rtl/imem.v            16 KB instruction memory ($readmemh)
 rtl/dmem.v            4 KB data memory (byte-addressed, word-aligned, 64-bit)
@@ -90,16 +91,19 @@ loop:
     HLT
 ```
 
-## Roadmap (the "becomes a modern CPU" plan)
+## The long road (dream plan)
 
-- **Phase 2 (next)** — wider front end: dual-issue decode, simple BTB +
-  2-bit dynamic branch predictor, branch resolution moved to ID, memory
-  splitter (single unified memory), DIV/REM multi-cycle unit with scoreboard.
-- **Phase 3 (the AMD-flavoured endgame)** — out-of-order core:
-  register renaming (more physical than architectural registers),
-  reservation stations / issue queues (in-order dispatch, out-of-order
-  execute), reorder buffer with precise exceptions, load/store queue with
-  memory disambiguation, and eventually SMT-lite.
+The full multi-phase plan — compiler fork, privilege/MMU, caches,
+out-of-order core, applications — lives in
+**[docs/ROADMAP.md](docs/ROADMAP.md)**.
+
+Current position:
+
+- ✅ **Phase 0** — custom ISA + pipelined core + toolchain (merged)
+- 🚧 **Phase 1** —
+  [x] dynamic branch predictor (BTB + 2-bit counters),
+  [ ] multi-cycle DIV, [ ] cycle-counting tb, [ ] FPGA bring-up kit
+- ⏭ **Phase 2** — C compiler decision fork (compat sub-mode vs LLVM backend)
 
 Each phase keeps the golden model synced first, RTL second — the assembler and
 test suite are the backbone of that contract.

@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 from assembler import Assembler, AsmError
 from golden import Golden, MASK64
 
-RTL = ["rtl/alu64.v", "rtl/regfile16x64.v", "rtl/decoder.v",
+RTL = ["rtl/alu64.v", "rtl/regfile16x64.v", "rtl/decoder.v", "rtl/bpu.v",
        "rtl/bijoy64_core.v", "rtl/imem.v", "rtl/dmem.v", "rtl/bijoy64_top.v"]
 TB = ["tb/tb_core.v"]
 
