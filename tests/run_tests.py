@@ -19,8 +19,12 @@ from assembler import Assembler, AsmError
 from golden import Golden, MASK64
 
 RTL = ["rtl/alu64.v", "rtl/regfile16x64.v", "rtl/decoder.v", "rtl/bpu.v",
-       "rtl/bijoy64_core.v", "rtl/imem.v", "rtl/dmem.v", "rtl/bijoy64_top.v"]
-TB = ["tb/tb_core.v"]
+       "rtl/div64.v", "rtl/bijoy64_core.v", "rtl/imem.v", "rtl/dmem.v",
+       "rtl/bijoy64_top.v",
+       "fpga/rtl/reset_sync.v", "fpga/rtl/uart_tx.v", "fpga/rtl/uart_rx.v",
+       "fpga/rtl/fpga_imem.v", "fpga/rtl/fpga_dmem.v",
+       "fpga/rtl/bijoy64_fpga_top.v"]
+TB = ["tb/tb_core.v", "tb/tb_uart.v"]
 
 EXPECT_REG = re.compile(r"#\s*EXPECT\s+r([0-9]|1[0-5])\s*=\s*(\S+)")
 EXPECT_MEM = re.compile(r"#\s*EXPECT\s+mem\[0x([0-9a-fA-F]+)\]\s*=\s*(\S+)")

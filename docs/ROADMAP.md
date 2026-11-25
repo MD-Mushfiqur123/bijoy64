@@ -18,10 +18,17 @@ Status marker: **[DONE] / [ACTIVE] / [NEXT] / [FUTURE]**
 Goal: *modern-CPU front-end ভিত*।
 - [x] [2a] Dynamic branch predictor: 64-entry BTB + 2-bit saturating counters
       (`rtl/bpu.v`), IF-stage prediction, EX-stage mispredict repair + update
-- [ ] [2b] Multi-cycle DIV/REM unit + EX busy/stall handshake (scoreboard-lite)
-- [ ] [2c] Cycle-counting testbench (CPI measurement: loops w/ predictor on/off)
-- [ ] [2d] FPGA bring-up kit: PLL, reset synchronizer, UART (TX/RX), top module
-      for Arty A7 / iCE40 — *first physical run: "Hello World" over UART*
+- [x] [2b] Multi-cycle DIV/REM unit (`rtl/div64.v`, 64-iteration restoring
+      divider) + EX busy/stall handshake — the pipeline freezes around long
+      divisions instead of blocking for a full clock period
+- [x] [2c] Cycle accounting: live CPI in tb_core (iverilog: cycles/retired/CPI)
+      + golden-model estimator (`golden.py --cycles`, full BTB/penalty replay,
+      hand-verified against t02..t06)
+- [x] [2d] FPGA bring-up kit (`fpga/`): reset synchronizer, 8N1 UART TX/RX,
+      MMIO map (TX 0x800 / status 0x808 / RX 0x810), synthesis-safe memory
+      variants, Arty A7 + iCE40 constraints, `t07_hello.asm` boot program.
+      No PLL for bring-up — single-clock, baud from `BAUD_DIV`; vendor MMCM
+      wrappers deferred until timing analysis demands them
 
 **Acceptance:** program output over UART on real FPGA; CPI improved for
 t04-style loops; all golden tests still pass (uarch changes must never break

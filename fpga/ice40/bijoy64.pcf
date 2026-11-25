@@ -1,0 +1,11 @@
+# BIJOY-64 on iCE40-HX8K Breakout Board (12 MHz clock)
+# Verify pin assignment against your board revision before flashing.
+
+set_io clk J3
+set_io arst_n_in C3
+set_io uart_tx_pin B6
+set_io uart_rx_pin C6
+set_io led[0] H5
+set_io led[1] J5
+set_io led[2] T9
+set_io led[3] T10
