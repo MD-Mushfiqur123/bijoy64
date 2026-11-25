@@ -36,6 +36,8 @@ module bijoy64_core (
     reg         id_ex_mem_re, id_ex_mem_we;
     reg         id_ex_is_br, id_ex_is_jal, id_ex_is_jalr, id_ex_is_link, id_ex_is_halt;
     reg  [2:0]  id_ex_cmp_op;
+    reg         id_ex_pred_taken;          // IF-stage prediction carried to EX
+    reg  [63:0] id_ex_pred_target;
 
     reg         ex_mem_valid;
     reg  [63:0] ex_mem_val;       // result value (alu result or pc+4 link)
@@ -58,6 +60,10 @@ module bijoy64_core (
     wire        ex_taken;
     wire [63:0] ex_target;
 
+    // dynamic branch prediction (Phase 1/2a)
+    wire        bpu_pred_taken;
+    wire [63:0] bpu_pred_target;
+
     wire        if_stall;
     wire        fetch_en = !halted_q && !if_stall;
 
@@ -69,6 +75,8 @@ module bijoy64_core (
     reg         if_id_valid;
     reg  [63:0] if_id_pc;
     reg  [31:0] if_id_ins;
+    reg         if_id_pred_taken;
+    reg  [63:0] if_id_pred_target;
 
     wire [3:0]  id_rd, id_rs1, id_rs2;
     wire [63:0] id_imm18, id_imm_s, id_imm_b, id_imm_j;
@@ -129,6 +137,21 @@ module bijoy64_core (
     // =====================================================================
     // EX: forwarding + execute
     // =====================================================================
+    // prediction update path (any control-flow insn that resolves in EX)
+    wire        id_ex_is_ct  = id_ex_is_br || id_ex_is_jal || id_ex_is_jalr;
+    wire        bpu_update   = id_ex_valid && id_ex_is_ct;
+
+    bpu u_bpu (
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .lookup_pc     (pc_q),
+        .pred_taken    (bpu_pred_taken),
+        .pred_target   (bpu_pred_target),
+        .update_valid  (bpu_update),
+        .update_pc     (id_ex_pc),
+        .update_taken  (ex_actual_taken),
+        .update_target (ex_actual_target)
+    );
     wire        ex_fwdA_ex = ex_mem_valid && ex_mem_rd_wren && !ex_mem_mem_re &&
                              (ex_mem_rd != 4'd0) && (ex_mem_rd == id_ex_rs1);
     wire        ex_fwdA_wb = mem_wb_valid && mem_wb_rd_wren && (mem_wb_rd != 4'd0) &&
@@ -178,12 +201,20 @@ module bijoy64_core (
     wire [63:0] jal_target  = id_ex_pc + id_ex_imm_j;
     wire [63:0] jalr_target = opr_a + id_ex_imm18;
 
-    wire        id_ex_is_ct = id_ex_is_br || id_ex_is_jal || id_ex_is_jalr;
-    assign      ex_taken = id_ex_valid && id_ex_is_ct &&
-                           (id_ex_is_jal || id_ex_is_jalr || br_taken);
-    assign      ex_target = id_ex_is_jal  ? jal_target  :
-                            id_ex_is_jalr ? jalr_target :
-                                            br_target;
+    wire        ex_actual_taken  = id_ex_valid && id_ex_is_ct &&
+                                   (id_ex_is_jal || id_ex_is_jalr || br_taken);
+    wire [63:0] ex_actual_target = id_ex_is_jal  ? jal_target  :
+                                   id_ex_is_jalr ? jalr_target :
+                                   id_ex_is_br   ? br_target   :
+                                                   id_ex_pc + 64'd4;
+
+    // mispredict repair: direction or target differs from the IF prediction
+    wire        ex_pred_mismatch = (ex_actual_taken != id_ex_pred_taken) ||
+                                   (ex_actual_taken &&
+                                    (id_ex_pred_target != ex_actual_target));
+
+    assign      ex_taken  = ex_pred_mismatch;
+    assign      ex_target = ex_actual_target;
 
     wire        halt_fetch = id_ex_valid && id_ex_is_halt;
 
@@ -214,6 +245,8 @@ module bijoy64_core (
             if_id_valid <= 1'b0;
             if_id_pc    <= 64'd0;
             if_id_ins   <= 32'd0;
+            if_id_pred_taken  <= 1'b0;
+            if_id_pred_target <= 64'd0;
         end else begin
             if (halt_fetch)
                 halted_q <= 1'b1;
@@ -222,15 +255,17 @@ module bijoy64_core (
                 if (ex_taken)
                     pc_q <= ex_target;
                 else if (fetch_en)
-                    pc_q <= pc_q + 64'd4;
+                    pc_q <= bpu_pred_taken ? bpu_pred_target : pc_q + 64'd4;
 
                 // IF/ID
                 if (ex_taken || halt_fetch) begin
-                    if_id_valid <= 1'b0;
+                    if_id_valid      <= 1'b0;
                 end else if (!if_stall) begin
-                    if_id_valid <= 1'b1;
-                    if_id_pc    <= pc_q;
-                    if_id_ins   <= imem_rdata;
+                    if_id_valid      <= 1'b1;
+                    if_id_pc         <= pc_q;
+                    if_id_ins        <= imem_rdata;
+                    if_id_pred_taken <= bpu_pred_taken;
+                    if_id_pred_target<= bpu_pred_target;
                 end
             end
         end
@@ -263,6 +298,8 @@ module bijoy64_core (
             id_ex_is_link <= 1'b0;
             id_ex_is_halt <= 1'b0;
             id_ex_cmp_op  <= 3'd0;
+            id_ex_pred_taken  <= 1'b0;
+            id_ex_pred_target <= 64'd0;
         end else if (flush || if_stall || halted_q || halt_fetch) begin
             id_ex_valid   <= 1'b0;
             id_ex_rd_wren <= 1'b0;
@@ -273,9 +310,13 @@ module bijoy64_core (
             id_ex_is_jalr <= 1'b0;
             id_ex_is_link <= 1'b0;
             id_ex_is_halt <= 1'b0;
+            id_ex_pred_taken  <= 1'b0;
+            id_ex_pred_target <= 64'd0;
         end else begin
             id_ex_valid   <= if_id_valid;
             id_ex_pc      <= if_id_pc;
+            id_ex_pred_taken  <= if_id_pred_taken;
+            id_ex_pred_target <= if_id_pred_target;
             id_ex_rs1val  <= id_rs1val;
             id_ex_rs2val  <= id_rs2val;
             id_ex_imm18   <= id_imm18;
