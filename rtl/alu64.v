@@ -2,7 +2,8 @@
 // alu64.v -- BIJOY-64 64-bit ALU (combinational)
 // op coding matches tools/assembler.py R-type opcode minus 1:
 //   0 ADD, 1 SUB, 2 AND, 3 OR, 4 XOR, 5 SLL, 6 SRL, 7 SRA,
-//   8 SLT, 9 SLTU, 10 MUL, 11 DIV, 12 REM
+//   8 SLT, 9 SLTU, 10 MUL, 11 DIV, 12 REM (DIV/REM are multi-cycle:
+//   handled by div64.v in the core; the ALU ties those ops to 0)
 // ---------------------------------------------------------------------------
 `timescale 1ns/1ps
 
@@ -29,8 +30,7 @@ module alu64 (
             4'd8:  y = (a_s < b_s) ? 64'd1 : 64'd0;            // SLT
             4'd9:  y = (a   < b  ) ? 64'd1 : 64'd0;            // SLTU
             4'd10: y = a_s * b_s;                              // MUL (low 64)
-            4'd11: y = (b == 64'd0) ? 64'd0 : (a_s / b_s);     // DIV (signed, /0 = 0)
-            4'd12: y = (b == 64'd0) ? a      : (a_s % b_s);    // REM (signed, /0 = a)
+                                                          // DIV/REM: div64.v
             default: y = 64'd0;
         endcase
     end

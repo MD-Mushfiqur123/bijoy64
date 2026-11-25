@@ -65,7 +65,8 @@ module bijoy64_core (
     wire [63:0] bpu_pred_target;
 
     wire        if_stall;
-    wire        fetch_en = !halted_q && !if_stall;
+    wire        div_wait;                 // multi-cycle DIV/REM freeze (EX busy)
+    wire        fetch_en = !halted_q && !if_stall && !div_wait;
 
     assign imem_addr = pc_q;
 
@@ -169,6 +170,28 @@ module bijoy64_core (
                         ex_fwdB_wb  ? mem_wb_val :
                                       id_ex_rs2val;
 
+    // multi-cycle DIV/REM (Phase 1/2b): freeze the pipeline until the unit finishes
+    wire        id_ex_is_div  = id_ex_valid &&
+                                ((id_ex_aluop == 4'd11) || (id_ex_aluop == 4'd12));
+    wire        div_start     = id_ex_is_div && !div_busy;
+    wire        div_done;
+    wire [63:0] div_q, div_r;
+    wire        div_busy;
+
+    assign      div_wait = id_ex_is_div && !div_done;
+
+    div64 u_div (
+        .clk       (clk),
+        .rst_n     (rst_n),
+        .start     (div_start),
+        .a         (opr_a),
+        .b         (opr_b),
+        .busy      (div_busy),
+        .done      (div_done),
+        .quotient  (div_q),
+        .remainder (div_r)
+    );
+
     wire [63:0] alu_b = id_ex_b_imm ? (id_ex_b_s12 ? id_ex_imm_s : id_ex_imm18) : opr_b;
 
     wire [63:0] alu_res;
@@ -260,7 +283,7 @@ module bijoy64_core (
                 // IF/ID
                 if (ex_taken || halt_fetch) begin
                     if_id_valid      <= 1'b0;
-                end else if (!if_stall) begin
+                end else if (!if_stall && !div_wait) begin
                     if_id_valid      <= 1'b1;
                     if_id_pc         <= pc_q;
                     if_id_ins        <= imem_rdata;
@@ -312,6 +335,9 @@ module bijoy64_core (
             id_ex_is_halt <= 1'b0;
             id_ex_pred_taken  <= 1'b0;
             id_ex_pred_target <= 64'd0;
+        end else if (div_wait) begin
+            // EX busy with multi-cycle DIV/REM: hold this stage (no overwrite,
+            // no bubble) until the unit signals `done`
         end else begin
             id_ex_valid   <= if_id_valid;
             id_ex_pc      <= if_id_pc;
@@ -358,15 +384,16 @@ module bijoy64_core (
             mem_wb_rd      <= 4'd0;
             mem_wb_rd_wren <= 1'b0;
         end else begin
-            // ---- EX -> MEM ----
-            if (!id_ex_valid) begin
+            // ---- EX -> MEM (multi-cycle DIV/REM freezes this stage) ----
+            if (!id_ex_valid || div_wait) begin
                 ex_mem_valid   <= 1'b0;
                 ex_mem_rd_wren <= 1'b0;
                 ex_mem_mem_re  <= 1'b0;
                 ex_mem_mem_we  <= 1'b0;
             end else begin
                 ex_mem_valid   <= 1'b1;
-                ex_mem_val     <= id_ex_is_link ? (id_ex_pc + 64'd4) : alu_res;
+                ex_mem_val     <= id_ex_is_div  ? ((id_ex_aluop == 4'd11) ? div_q : div_r) :
+                                  id_ex_is_link ? (id_ex_pc + 64'd4) : alu_res;
                 ex_mem_addr    <= alu_res;
                 ex_mem_stdata  <= opr_b;
                 ex_mem_rd      <= id_ex_rd;

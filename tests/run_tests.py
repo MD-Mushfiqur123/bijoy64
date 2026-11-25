@@ -19,7 +19,8 @@ from assembler import Assembler, AsmError
 from golden import Golden, MASK64
 
 RTL = ["rtl/alu64.v", "rtl/regfile16x64.v", "rtl/decoder.v", "rtl/bpu.v",
-       "rtl/bijoy64_core.v", "rtl/imem.v", "rtl/dmem.v", "rtl/bijoy64_top.v"]
+       "rtl/div64.v", "rtl/bijoy64_core.v", "rtl/imem.v", "rtl/dmem.v",
+       "rtl/bijoy64_top.v"]
 TB = ["tb/tb_core.v"]
 
 EXPECT_REG = re.compile(r"#\s*EXPECT\s+r([0-9]|1[0-5])\s*=\s*(\S+)")

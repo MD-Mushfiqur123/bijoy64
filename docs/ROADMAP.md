@@ -18,7 +18,9 @@ Status marker: **[DONE] / [ACTIVE] / [NEXT] / [FUTURE]**
 Goal: *modern-CPU front-end ভিত*।
 - [x] [2a] Dynamic branch predictor: 64-entry BTB + 2-bit saturating counters
       (`rtl/bpu.v`), IF-stage prediction, EX-stage mispredict repair + update
-- [ ] [2b] Multi-cycle DIV/REM unit + EX busy/stall handshake (scoreboard-lite)
+- [x] [2b] Multi-cycle DIV/REM unit (`rtl/div64.v`, 64-iteration restoring
+      divider) + EX busy/stall handshake — the pipeline freezes around long
+      divisions instead of blocking for a full clock period
 - [ ] [2c] Cycle-counting testbench (CPI measurement: loops w/ predictor on/off)
 - [ ] [2d] FPGA bring-up kit: PLL, reset synchronizer, UART (TX/RX), top module
       for Arty A7 / iCE40 — *first physical run: "Hello World" over UART*
