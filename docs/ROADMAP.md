@@ -24,8 +24,11 @@ Goal: *modern-CPU front-end ভিত*।
 - [x] [2c] Cycle accounting: live CPI in tb_core (iverilog: cycles/retired/CPI)
       + golden-model estimator (`golden.py --cycles`, full BTB/penalty replay,
       hand-verified against t02..t06)
-- [ ] [2d] FPGA bring-up kit: PLL, reset synchronizer, UART (TX/RX), top module
-      for Arty A7 / iCE40 — *first physical run: "Hello World" over UART*
+- [x] [2d] FPGA bring-up kit (`fpga/`): reset synchronizer, 8N1 UART TX/RX,
+      MMIO map (TX 0x800 / status 0x808 / RX 0x810), synthesis-safe memory
+      variants, Arty A7 + iCE40 constraints, `t07_hello.asm` boot program.
+      No PLL for bring-up — single-clock, baud from `BAUD_DIV`; vendor MMCM
+      wrappers deferred until timing analysis demands them
 
 **Acceptance:** program output over UART on real FPGA; CPI improved for
 t04-style loops; all golden tests still pass (uarch changes must never break

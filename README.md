@@ -42,6 +42,8 @@ rtl/imem.v            16 KB instruction memory ($readmemh)
 rtl/dmem.v            4 KB data memory (byte-addressed, word-aligned, 64-bit)
 rtl/bijoy64_top.v     top-level wiring
 tb/tb_core.v          Icarus-Verilog testbench: run to halt, dump arch state
+tb/tb_uart.v          UART TX->RX loopback check for the FPGA bring-up kit
+fpga/                 FPGA kit: MMIO top, UART, reset sync, board constraints
 tools/assembler.py    .asm -> imem.hex / dmem.hex (labels, LI/J/RET/NOP pseudo-ops)
 tools/golden.py       architectural golden model in Python
 tools/pp_shim.py      tiny `iverilog -E` stand-in for pyverilog linting
