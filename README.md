@@ -44,11 +44,17 @@ rtl/mx_hpi_1_top.v     top-level wiring
 tb/tb_core.v          Icarus-Verilog testbench: run to halt, dump arch state
 tb/tb_uart.v          UART TX->RX loopback check for the FPGA bring-up kit
 fpga/                 FPGA kit: MMIO top, UART, reset sync, board constraints
-tools/assembler.py    .asm -> imem.hex / dmem.hex (labels, LI/J/RET/NOP pseudo-ops)
+tools/assembler.py    .asm -> imem.hex / dmem.hex, or relocatable .mo objects
+                      (labels, LI/J/RET/NOP pseudo-ops, .global/.extern)
+tools/linker.py       links .mo objects: symbol resolution + relocations + link map
 tools/golden.py       architectural golden model in Python
 tools/pp_shim.py      tiny `iverilog -E` stand-in for pyverilog linting
 tests/run_tests.py    assemble + golden-execute + EXPECT-diff + Verilog parse
+                      (+ cross-file link tests from tests/link/)
 ```
+
+Calling convention, stack layout, memory map and the object/link format:
+**[docs/ABI.md](docs/ABI.md)**. Master plan: **[docs/ROADMAP.md](docs/ROADMAP.md)**.
 
 ## Running
 

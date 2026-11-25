@@ -34,14 +34,17 @@ Goal: *modern-CPU front-end ভিত*।
 t04-style loops; all golden tests still pass (uarch changes must never break
 the architectural contract).
 
-## Phase 2 — C compiler decision fork  **[NEXT]**
-Goal: *compile, not assemble*।
-- Path A (recommended): **compat sub-mode** — RV64IMA encoding support behind
-  a mode bit; unlocks the whole GCC/LLVM/binutils/Linux ecosystem for free.
-- Path B (purist): MX-Hpi-1 LLVM backend (TableGen, RegisterInfo, CallingConv)
-  — the "proper" long route, ~3-6+ months.
-- Either way: define the ABI (calling convention, stack layout) formally in
-  `docs/ABI.md`; assembler gets relocation/linking support.
+## Phase 2 — C compiler decision fork  **[ACTIVE]**
+Goal: *compile, not assemble*
+- [x] [3a] ABI: 16-register convention (r1-r2 returns, r3-r10 args,
+      r11-r13 caller-saved temps, r14 = sp, r15 = lr), stack frame layout,
+      canonical prologue/epilogue, hosted memory map — `docs/ABI.md`
+- [x] [3b] Relocatable `.mo` object format + `tools/linker.py`: `.global`/
+      `.extern`, R_MX_BR12/JMP22/LODI18/WORD64 relocations, link order =
+      entry point, link map; cross-object link test (`tests/link/t08_*.asm`)
+- [ ] [3c] Path decision: **A** = RV64IMA compat sub-mode behind a mode bit
+      (unlocks GCC/LLVM/binutils/Linux for free) **vs B** = MX-Hpi-1 LLVM
+      backend (TableGen, RegisterInfo, CallingConv — the long, pure route)
 
 **Acceptance:** a compiled C program (hello world → printf → malloc) runs on
 both golden model and RTL.

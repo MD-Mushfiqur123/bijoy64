@@ -14,9 +14,11 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+sys.path.insert(0, HERE)
 
 from assembler import Assembler, AsmError
 from golden import Golden, MASK64
+from linker import link_objects, LinkError
 
 RTL = ["rtl/alu64.v", "rtl/regfile16x64.v", "rtl/decoder.v", "rtl/bpu.v",
        "rtl/div64.v", "rtl/mx_hpi_1_core.v", "rtl/imem.v", "rtl/dmem.v",
@@ -25,6 +27,10 @@ RTL = ["rtl/alu64.v", "rtl/regfile16x64.v", "rtl/decoder.v", "rtl/bpu.v",
        "fpga/rtl/fpga_imem.v", "fpga/rtl/fpga_dmem.v",
        "fpga/rtl/mx_hpi_1_fpga_top.v"]
 TB = ["tb/tb_core.v", "tb/tb_uart.v"]
+
+# (main .asm, [library .asm...]) — objects linked with assembler+linker;
+# the first object is the entry point (pc 0), EXPECT lines come from main
+LINK_TESTS = [(["link/t08_main.asm", "link/t08_lib.asm"], "link/t08_main.asm")]
 
 EXPECT_REG = re.compile(r"#\s*EXPECT\s+r([0-9]|1[0-5])\s*=\s*(\S+)")
 EXPECT_MEM = re.compile(r"#\s*EXPECT\s+mem\[0x([0-9a-fA-F]+)\]\s*=\s*(\S+)")
@@ -83,6 +89,41 @@ def lint_verilog():
         os.chdir(cwd)
 
 
+def run_link_group(files, main_name):
+    """Assemble each file to an object, link, run golden, diff main's EXPECTs."""
+    objs = []
+    for rel in files:
+        asm = Assembler()
+        objs.append(asm.to_object(open(os.path.join(ROOT, "tests", rel)).read()))
+    words, data, _ = link_objects(objs)
+
+    g = Golden(words, data)
+    g.run()
+
+    failures = []
+    checked = 0
+    main_path = os.path.join(ROOT, "tests", main_name)
+    for line in open(main_path):
+        m = EXPECT_REG.search(line)
+        if m:
+            idx, val = int(m.group(1)), m.group(2)
+            want = int(val, 0) & MASK64
+            got = g.regs[idx]
+            checked += 1
+            if got != want:
+                failures.append(f"r{idx}: expected 0x{want:016x}, got 0x{got:016x} ({val})")
+            continue
+        m = EXPECT_MEM.search(line)
+        if m:
+            addr, val = int(m.group(1), 16), m.group(2)
+            want = int(val, 0) & MASK64
+            got = g.rd_word(addr >> 3)
+            checked += 1
+            if got != want:
+                failures.append(f"mem[0x{addr:x}]: expected 0x{want:016x}, got 0x{got:016x} ({val})")
+    return g, failures, checked
+
+
 def main():
     print("== pyverilog syntax lint ==")
     try:
@@ -123,6 +164,24 @@ def main():
             total_fail += 1
         else:
             print("%s: PASS (%d checks, %d insns retired)" % (name, checked, len(g.trace)))
+            total_pass += 1
+
+    print("\n== linker checks (assembler objects + cross-file symbols) ==")
+    for files, main_name in LINK_TESTS:
+        label = " + ".join(files)
+        try:
+            g, failures, checked = run_link_group(files, main_name)
+        except (AsmError, RuntimeError, ValueError, LinkError) as e:
+            print("%s: FAILED (%s)" % (label, e))
+            total_fail += 1
+            continue
+        if failures:
+            print("%s: FAILED (%d mismatch over %d checks)" % (label, len(failures), checked))
+            for f in failures:
+                print("    " + f)
+            total_fail += 1
+        else:
+            print("%s: PASS (%d checks, %d insns retired)" % (label, checked, len(g.trace)))
             total_pass += 1
 
     print("\nSummary: %d passed, %d failed" % (total_pass, total_fail))
