@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// decoder.v -- BIJOY-64 instruction decoder (combinational, ID stage)
+// decoder.v -- MX-Hpi-1 instruction decoder (combinational, ID stage)
 // Field geometry (docs/ISA.md):
 //   op  = ins[31:26]   rd = ins[25:22]   rs1 = ins[21:18]   rs2 = ins[17:14]
 //   I-type: imm18 = ins[17:0]                    (signed, except LODI / ORI -> zero ext)

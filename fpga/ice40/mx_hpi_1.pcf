@@ -1,4 +1,4 @@
-# BIJOY-64 on iCE40-HX8K Breakout Board (12 MHz clock)
+# MX-Hpi-1 on iCE40-HX8K Breakout Board (12 MHz clock)
 # Verify pin assignment against your board revision before flashing.
 
 set_io clk J3

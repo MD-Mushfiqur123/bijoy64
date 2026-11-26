@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// bpu.v -- BIJOY-64 dynamic branch predictor (Phase 1/2a)
+// bpu.v -- MX-Hpi-1 dynamic branch predictor (Phase 1/2a)
 //
 // 64-entry direct-mapped BTB with 2-bit saturating counters.
 //   lookup : IF stage, per fetched PC -> (pred_taken, pred_target)

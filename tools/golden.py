@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BIJOY-64 golden model: cycle-accurate-behavior-independent architectural
+"""MX-Hpi-1 golden model: cycle-accurate-behavior-independent architectural
 reference simulator (matched to tools/assembler.py and docs/ISA.md)."""
 import sys
 
@@ -233,7 +233,7 @@ def main():
     import argparse
     from assembler import Assembler
 
-    ap = argparse.ArgumentParser(description="BIJOY-64 golden model")
+    ap = argparse.ArgumentParser(description="MX-Hpi-1 golden model")
     ap.add_argument("input")
     ap.add_argument("--regs", action="store_true", help="print r1..r15 at halt")
     ap.add_argument("--mem", action="store_true", help="print nonzero data memory")

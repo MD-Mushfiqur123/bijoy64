@@ -1,4 +1,4 @@
-# BIJOY-64 test 6: DIV/REM multi-cycle unit semantics
+# MX-Hpi-1 test 6: DIV/REM multi-cycle unit semantics
 # (Run with run_tests.py. Exercises the EX busy/freeze path in RTL too.)
 
     LI      r1, -1234567890123

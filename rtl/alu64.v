@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// alu64.v -- BIJOY-64 64-bit ALU (combinational)
+// alu64.v -- MX-Hpi-1 64-bit ALU (combinational)
 // op coding matches tools/assembler.py R-type opcode minus 1:
 //   0 ADD, 1 SUB, 2 AND, 3 OR, 4 XOR, 5 SLL, 6 SRL, 7 SRA,
 //   8 SLT, 9 SLTU, 10 MUL, 11 DIV, 12 REM (DIV/REM are multi-cycle:

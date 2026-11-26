@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// div64.v -- BIJOY-64 multi-cycle DIV/REM unit (Phase 1/2b)
+// div64.v -- MX-Hpi-1 multi-cycle DIV/REM unit (Phase 1/2b)
 //
 // Iterative restoring divider on magnitudes, 64 iterations (~66 cycle
 // latency including start/done overhead), sign-fixup at the end:

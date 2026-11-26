@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// bijoy64_top.v -- BIJOY-64 top level: core + instruction/data memories
+// mx_hpi_1_top.v -- MX-Hpi-1 top level: core + instruction/data memories
 // ---------------------------------------------------------------------------
 `timescale 1ns/1ps
 
-module bijoy64_top (
+module mx_hpi_1_top (
     input  wire clk,
     input  wire rst_n,
     output wire halted
@@ -15,7 +15,7 @@ module bijoy64_top (
     wire        dmem_re, dmem_we;
     wire [63:0] dmem_wdata, dmem_rdata;
 
-    bijoy64_core u_core (
+    mx_hpi_1_core u_core (
         .clk        (clk),
         .rst_n      (rst_n),
         .imem_addr  (imem_addr),

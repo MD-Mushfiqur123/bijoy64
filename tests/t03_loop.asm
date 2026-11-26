@@ -1,4 +1,4 @@
-# BIJOY-64 test 3: loop with branches -- sum 1..10 = 55, plus factorial 5 = 120
+# MX-Hpi-1 test 3: loop with branches -- sum 1..10 = 55, plus factorial 5 = 120
 
     LODI    r1, 10           # i
     LODI    r2, 0            # sum

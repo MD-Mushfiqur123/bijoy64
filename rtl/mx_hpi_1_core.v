@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// bijoy64_core.v -- BIJOY-64 5-stage pipelined core (IF ID EX MEM WB)
+// mx_hpi_1_core.v -- MX-Hpi-1 5-stage pipelined core (IF ID EX MEM WB)
 //
 //   * full EX/MEM->EX and MEM/WB->EX forwarding
 //   * load-use hazard: 1-cycle bubble (IF/ID stalls, ID/EX flushed)
@@ -9,7 +9,7 @@
 // ---------------------------------------------------------------------------
 `timescale 1ns/1ps
 
-module bijoy64_core (
+module mx_hpi_1_core (
     input  wire        clk,
     input  wire        rst_n,
 

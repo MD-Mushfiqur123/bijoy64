@@ -1,4 +1,4 @@
-# BIJOY-64 test 1: arithmetic / logic / compare / mul / div
+# MX-Hpi-1 test 1: arithmetic / logic / compare / mul / div
 #
 #  r1 = 20, r2 = 6
 #  r3 = r1 + r2        = 26

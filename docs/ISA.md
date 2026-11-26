@@ -1,6 +1,6 @@
-# BIJOY-64 — Custom 64-bit Instruction Set Architecture (ISA)
+# MX-Hpi-1 — Custom 64-bit Instruction Set Architecture (ISA)
 
-BIJOY-64 is a from-scratch, load/store RISC architecture with a **64-bit datapath**
+MX-Hpi-1 is a from-scratch, load/store RISC architecture with a **64-bit datapath**
 and **32-bit fixed-width instructions**, designed for a classical 5-stage pipeline
 (IF → ID → EX → MEM → WB) with forwarding, hazard stall and static branch
 predict-not-taken. It is *not* derived from any existing ISA — every opcode and
